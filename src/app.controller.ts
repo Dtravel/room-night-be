@@ -11,6 +11,11 @@ export class AppController {
     getHello(): string {
         return this.appService.getHello()
     }
+
+    @Get('/operator')
+    getOperatorAddress(@Param('hostId') hostId: string): string {
+        return process.env.OPERATOR_ADDRESS
+    }
     // API listing all listing for host
     @Get('/listing/:hostId')
     getListingByWalletAddress(@Param('hostId') hostId: string): string {

@@ -24,7 +24,13 @@ export class BscProvider {
         return this.nonceManager
     }
 
-    getContract() {}
+    getContract(contractAddress: string, contractABI: any) {
+        return new ethers.Contract(contractAddress, contractABI, this.nonceManager)
+    }
+
+    getGasPrice(): Promise<ethers.BigNumber> {
+        return this.etherProvider.getGasPrice()
+    }
 
     getContractWss(contractAddress: string, contractABI: any) {
         return new ethers.Contract(contractAddress, contractABI, this.wssProvider)
@@ -36,7 +42,7 @@ export class BscProvider {
         eventName: string,
         handler: (from, to, value, event) => any,
     ): Promise<void> {
-        // console.log(`Start listening from contract ${contractAddress} filter by event ${eventName}`)
+        console.log(`Start listening event ${eventName} from contract ${contractAddress}`)
         const contract = this.getContractWss(contractAddress, contractABI)
         contract.on(eventName, handler)
     }

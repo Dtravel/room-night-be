@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common'
 import { BscProvider } from './bsc.provider'
-import { Listener } from './listener'
 @Module({
     imports: [],
-    providers: [BscProvider, Listener],
+    providers: [BscProvider],
     exports: [BscProvider],
 })
 export class Web3Module {}

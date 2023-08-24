@@ -1,0 +1,5 @@
+export const USDT_ADDRESS = '0x0062fc7642e7bd9b4685901258207a6e22e23378'
+export const FACTORY_ADDRESS = '0x15d0597d0ef4ece16421d4de48387cbae3b2f6bd'
+export const SAMPLE_HOST_ADDRESS = '0x4937bc47afe32745733c74f858bb1f08d2e49447' //account 16
+export const SAMPLE_GUEST_ADDRESS = '0x75e0c5b3536af352e8139fc329612b3c967ac842' //account 17
+export const SAMPLE_RNT = '0xbe3ec2b9aacf4dd843de8f17f822415c255d8073'
