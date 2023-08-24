@@ -27,6 +27,7 @@ jobs:
             - deps-
       - run: npm i
       - run: npx prisma generate
+      - run: npx prisma generate --schema=./prisma-listing/schema.prisma
       - save_cache:
           key: deps-{{ checksum "package.json" }}
           paths:

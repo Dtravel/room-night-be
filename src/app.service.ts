@@ -7,14 +7,20 @@ import { UpdateReservationDto } from './dto/UpdateReservation.dto'
 import { FACTORY_ABI, ROOM_NIGHT_ABI } from './web3/abi/ABIs'
 import { BscProvider } from './web3/bsc.provider'
 import { Decimal } from '@prisma/client/runtime'
+import { PrismaListingService } from './connections/prismaListing.service'
+import dayjs from 'dayjs'
 
 @Injectable()
 export class AppService {
     factoryContract: ethers.Contract
-    constructor(private readonly prismaService: PrismaService, private readonly bscProvider: BscProvider) {
+    constructor(
+        private readonly prismaService: PrismaService,
+        private readonly prismaListingService: PrismaListingService,
+        private readonly bscProvider: BscProvider,
+    ) {
         this.factoryContract = this.bscProvider.getContract(FACTORY_ADDRESS, FACTORY_ABI)
     }
-    
+
     updateReservation(resId: string, updateDto: UpdateReservationDto) {
         return this.prismaService.reservation_mapping.upsert({
             where: {
@@ -134,10 +140,21 @@ export class AppService {
 
         const tx = await this.bscProvider.getNonceManager().sendTransaction(unsignedTx)
         const receipt = await tx.wait()
-        if (receipt && receipt.transactionHash) {
-            console.log('🚀 ~ file: app.service.ts:85 ~ AppService ~ confirmReservation ~ receipt:', receipt)
-        }
+        console.log('🚀 ~ file: app.service.ts:85 ~ AppService ~ confirmReservation ~ receipt:', receipt)
         // TODO: update calendar
+        await this.prismaListingService.calendar.updateMany({
+            where: {
+                date: {
+                    gte: dayjs(checkinDate).format('YYYY-MM-DD'),
+                    lte: dayjs(checkoutDate).format('YYYY-MM-DD'),
+                },
+                property_id: reservation.listing_id,
+            },
+            data: {
+                is_available: false,
+                status: 'reserved',
+            },
+        })
         return receipt
     }
 }

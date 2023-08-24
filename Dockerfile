@@ -5,5 +5,6 @@ COPY package*.json ./
 COPY dist ./dist
 COPY node_modules ./node_modules
 COPY prisma ./prisma
+COPY prisma-listing ./prisma-listing
 EXPOSE 3000
 CMD [ "npm", "run", "start:prod" ]

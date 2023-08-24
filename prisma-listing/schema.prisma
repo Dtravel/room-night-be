@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/@internal/prisma-listing/client"
+  binaryTargets = ["native", "linux-musl"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_LISTING_URL")
+}
+
+model calendar {
+  id                   Int      @id @default(autoincrement())
+  property_id          Int
+  is_available         Boolean  @default(false)
+  status               String?
+  price                Decimal? @db.Decimal(19, 8)
+  minimum_stay         Int?     @default(1)
+  maximum_stay         Int?     @default(1)
+  close_on_arrival     Boolean?
+  close_on_departure   Boolean?
+  note                 String?
+  reason               String?
+  room_to_sell         Int?
+  currency             String?
+  wallet_id            String?
+  created_at           DateTime @default(now())
+  updated_at           DateTime @default(now())
+  date                 String
+  user_id              String?  @db.Uuid
+  minimum_stay_through Int?     @default(1)
+
+  @@unique([property_id, date])
+}
