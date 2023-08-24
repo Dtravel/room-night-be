@@ -89,13 +89,14 @@ export class AppService {
         })
         if (!reservationMapping || !reservation) return false
         // TODO: verify value of transaction
-        let slippagePercent = new Decimal(value)
+        let valueEther = ethers.utils.formatEther(value);
+        let slippagePercent = new Decimal(valueEther)
             .minus(reservation.final_price)
             .abs()
             .div(reservation.final_price)
             .mul(100)
         if (slippagePercent.greaterThan(10)) {
-            throw new BadRequestException(`slippagePercent is greater than 10: ${value} vs ${reservation.final_price}`)
+            throw new BadRequestException(`slippagePercent is greater than 10: ${valueEther} vs ${reservation.final_price}`)
         }
         // Update reservation status
         await this.prismaService.reservation.update({
