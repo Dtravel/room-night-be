@@ -7,9 +7,9 @@ import { BaseResponse } from './common/base.response'
 export class AppController {
     constructor(private readonly appService: AppService) {}
 
-    @Get()
-    getHello(): string {
-        return this.appService.getHello()
+    @Get('/health')
+    healthCheck(): string {
+        return "OK"
     }
 
     @Get('/operator')

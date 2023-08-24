@@ -14,10 +14,7 @@ export class AppService {
     constructor(private readonly prismaService: PrismaService, private readonly bscProvider: BscProvider) {
         this.factoryContract = this.bscProvider.getContract(FACTORY_ADDRESS, FACTORY_ABI)
     }
-    getHello(): string {
-        return 'Hello World!'
-    }
-
+    
     updateReservation(resId: string, updateDto: UpdateReservationDto) {
         return this.prismaService.reservation_mapping.upsert({
             where: {
