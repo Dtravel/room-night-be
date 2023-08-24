@@ -8,7 +8,7 @@ import { FACTORY_ABI, ROOM_NIGHT_ABI } from './web3/abi/ABIs'
 import { BscProvider } from './web3/bsc.provider'
 import { Decimal } from '@prisma/client/runtime'
 import { PrismaListingService } from './connections/prismaListing.service'
-import dayjs from 'dayjs'
+import * as dayjs from 'dayjs'
 
 @Injectable()
 export class AppService {
@@ -147,7 +147,7 @@ export class AppService {
             where: {
                 date: {
                     gte: dayjs(checkinDate).format('YYYY-MM-DD'),
-                    lte: dayjs(checkoutDate).format('YYYY-MM-DD'),
+                    lt: dayjs(checkoutDate).format('YYYY-MM-DD'),
                 },
                 property_id: reservation.listing_id,
             },

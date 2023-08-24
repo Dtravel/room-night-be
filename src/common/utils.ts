@@ -8,8 +8,8 @@ export class Utils {
     }
     static getDateInRange(startDate: Date, endDate: Date): number[] {
         let dates = []
-        let currentDate = startDate
-        while (currentDate <= endDate) {
+        let currentDate = new Date(startDate)
+        while (currentDate < endDate) {
             dates.push(currentDate.getTime()/1000)
             currentDate = new Date(currentDate.setDate(currentDate.getDate() + 1))
         }

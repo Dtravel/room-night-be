@@ -23,7 +23,7 @@ export class Listener implements OnModuleInit, OnModuleDestroy {
                     }
                     await this.appService.confirmReservation(event.transactionHash, value.toString())
                 } catch (error) {
-                    console.error(`Error ưhile cònirm booking`, error)
+                    console.error(`Error while confirm booking`, error)
                 }
             },
         )
