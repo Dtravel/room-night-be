@@ -10,7 +10,7 @@ export class Utils {
         let dates = []
         let currentDate = startDate
         while (currentDate <= endDate) {
-            dates.push(currentDate.getSeconds())
+            dates.push(currentDate.getTime()/1000)
             currentDate = new Date(currentDate.setDate(currentDate.getDate() + 1))
         }
         return dates

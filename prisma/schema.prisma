@@ -29,5 +29,6 @@ model reservation {
   checkoutDate            DateTime  @map("checkout_date") @db.Date
   guest_wallet            String?   @db.VarChar(255)
   host_wallet             String?   @db.VarChar(255)  
-  listing_id               Int?      @map("listing_id")
+  listing_id              Int?      @map("listing_id")
+  final_price             Decimal   @map("final_price") @db.Decimal(19, 8)
 }

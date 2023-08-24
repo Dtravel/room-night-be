@@ -20,7 +20,7 @@ export class Listener implements OnModuleInit, OnModuleDestroy {
                     console.log(`to address is not operator address`, process.env.OPERATOR_ADDRESS)
                     return
                 }
-                await this.appService.confirmReservation(event.transactionHash, value)
+                await this.appService.confirmReservation(event.transactionHash, value.toString())
             },
         )
 

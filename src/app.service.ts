@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable } from '@nestjs/common'
 import { ethers } from 'ethers'
 import { FACTORY_ADDRESS, SAMPLE_GUEST_ADDRESS, SAMPLE_HOST_ADDRESS } from './common/const'
 import { Utils } from './common/utils'
@@ -6,6 +6,7 @@ import { PrismaService } from './connections/prisma.service'
 import { UpdateReservationDto } from './dto/UpdateReservation.dto'
 import { FACTORY_ABI, ROOM_NIGHT_ABI } from './web3/abi/ABIs'
 import { BscProvider } from './web3/bsc.provider'
+import { Decimal } from '@prisma/client/runtime'
 
 @Injectable()
 export class AppService {
@@ -71,7 +72,7 @@ export class AppService {
         })
     }
 
-    async confirmReservation(transactionHash: string, value: any) {
+    async confirmReservation(transactionHash: string, value: string) {
         // verify transactionHash
         let reservationMapping = await this.prismaService.reservation_mapping.findUnique({
             where: {
@@ -85,6 +86,14 @@ export class AppService {
         })
         if (!reservationMapping || !reservation) return false
         // TODO: verify value of transaction
+        let slippagePercent = new Decimal(value)
+            .minus(reservation.final_price)
+            .abs()
+            .div(reservation.final_price)
+            .mul(100)
+        if (slippagePercent.greaterThan(10)) {
+            throw new BadRequestException(`slippagePercent is greater than 10: ${value} vs ${reservation.final_price}`)
+        }
         // Update reservation status
         await this.prismaService.reservation.update({
             where: {
@@ -103,7 +112,6 @@ export class AppService {
         // transfer tokens from host to guest
         let { checkinDate, checkoutDate } = reservation
         let dateRangeTokenIDs = Utils.getDateInRange(checkinDate, checkoutDate)
-        dateRangeTokenIDs = [1694563200]
         console.log(
             '🚀 ~ file: app.service.ts:73 ~ AppService ~ confirmReservation ~ dateRangeTokenIDs:',
             dateRangeTokenIDs,
@@ -131,9 +139,8 @@ export class AppService {
         const receipt = await tx.wait()
         if (receipt && receipt.transactionHash) {
             console.log('🚀 ~ file: app.service.ts:85 ~ AppService ~ confirmReservation ~ receipt:', receipt)
-            console.log(receipt)
         }
+        // TODO: update calendar
         return receipt
-        // update calendar
     }
 }
