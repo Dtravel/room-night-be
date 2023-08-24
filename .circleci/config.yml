@@ -33,7 +33,7 @@ jobs:
           paths:
             - node_modules
       - run: npm run build
-      - run: npm ci --production
+      # - run: npm ci --production
       - setup_remote_docker:
           version: 20.10.11
       - aws-ecr/build-and-push-image:
