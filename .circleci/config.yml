@@ -1,0 +1,107 @@
+version: 2.1
+orbs:
+  aws-ecr: circleci/aws-ecr@7.3.0
+  slack: circleci/slack@4.8.3
+  aws-ecs: circleci/aws-ecs@2.0.0
+executors:
+  docker-executor:
+    docker:
+      - image: public.ecr.aws/p5h0u5q6/node-sonar:16.15.0
+    resource_class: medium
+parameters:
+  repo:
+    type: string
+    default: "${CIRCLE_PROJECT_REPONAME}-${CIRCLE_BRANCH}-build"
+  tag:
+    type: string
+    default: '"<< pipeline.number >>"'
+
+jobs:
+  build:
+    executor: docker-executor
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - deps-{{ checksum "package.json" }}
+            - deps-
+      - run: npm i
+      - run: npx prisma generate
+      - save_cache:
+          key: deps-{{ checksum "package.json" }}
+          paths:
+            - node_modules
+      - run: npm run build
+      - run: npm ci --production
+      - setup_remote_docker:
+          version: 20.10.11
+      - aws-ecr/build-and-push-image:
+          repo: << pipeline.parameters.repo >>
+          tag: << pipeline.parameters.tag >>
+          create-repo: true
+          checkout: false
+  notify:
+    executor: docker-executor
+    steps:
+      - slack/notify:
+          channel: 'alerts-backend-ci'
+          event: pass
+          template: basic_success_2
+workflows:
+  build-and-deploy:
+    jobs:
+      - build:
+          context:
+            - ecr-<< pipeline.git.branch >>
+            - << pipeline.git.branch >>
+          filters:
+            branches:
+              only:
+                - main
+                - staging
+                - dev
+      - notify:
+          context:
+            - common
+            - ecr-<< pipeline.git.branch >>
+            - << pipeline.git.branch >>
+          filters:
+            branches:
+              only:
+                - main
+                - staging
+                - dev
+          requires:
+            - deploy
+            - deploy-stg
+      - aws-ecs/deploy-service-update:
+          name: deploy
+          cluster-name: $ECS_CLUSTER
+          container-image-name-updates: 'container=${CIRCLE_PROJECT_REPONAME},image-and-tag=${AWS_ECR_ACCOUNT_URL}/<< pipeline.parameters.repo >>:<< pipeline.parameters.tag >>'
+          family: $CIRCLE_PROJECT_REPONAME
+          context:
+            - common
+            - ecr-<< pipeline.git.branch >>
+            - << pipeline.git.branch >>
+          filters:
+            branches:
+              only:
+                - main
+                - dev
+          requires:
+            - build
+      - aws-ecs/deploy-service-update:
+          name: deploy-stg
+          cluster-name: $ECS_CLUSTER
+          container-image-name-updates: 'container=${CIRCLE_PROJECT_REPONAME}-stg,image-and-tag=${AWS_ECR_ACCOUNT_URL}/<< pipeline.parameters.repo >>:<< pipeline.parameters.tag >>'
+          family: "${CIRCLE_PROJECT_REPONAME}-stg"
+          context:
+            - common
+            - ecr-<< pipeline.git.branch >>
+            - << pipeline.git.branch >>
+          filters:
+            branches:
+              only:
+                - staging
+          requires:
+            - build
