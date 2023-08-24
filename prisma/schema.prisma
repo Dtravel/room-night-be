@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl"]
 }
 
 datasource db {
@@ -22,13 +23,13 @@ model listing_mapping {
 }
 
 model reservation {
-  id                      Int       @id @default(autoincrement())
-  reservation_id          String    @unique @db.VarChar(20)
-  status                  String    @db.VarChar(255)
-  checkinDate             DateTime  @map("checkin_date") @db.Date
-  checkoutDate            DateTime  @map("checkout_date") @db.Date
-  guest_wallet            String?   @db.VarChar(255)
-  host_wallet             String?   @db.VarChar(255)  
-  listing_id              Int?      @map("listing_id")
-  final_price             Decimal   @map("final_price") @db.Decimal(19, 8)
+  id             Int      @id @default(autoincrement())
+  reservation_id String   @unique @db.VarChar(20)
+  status         String   @db.VarChar(255)
+  checkinDate    DateTime @map("checkin_date") @db.Date
+  checkoutDate   DateTime @map("checkout_date") @db.Date
+  guest_wallet   String?  @db.VarChar(255)
+  host_wallet    String?  @db.VarChar(255)
+  listing_id     Int?     @map("listing_id")
+  final_price    Decimal  @map("final_price") @db.Decimal(19, 8)
 }

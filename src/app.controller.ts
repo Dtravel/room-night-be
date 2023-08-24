@@ -9,12 +9,12 @@ export class AppController {
 
     @Get('/health')
     healthCheck(): string {
-        return "OK"
+        return 'OK'
     }
 
     @Get('/operator')
-    getOperatorAddress(@Param('hostId') hostId: string): string {
-        return process.env.OPERATOR_ADDRESS
+    getOperatorAddress(@Param('hostId') hostId: string): BaseResponse {
+        return BaseResponse.ok(process.env.OPERATOR_ADDRESS)
     }
     // API listing all listing for host
     @Get('/listing/:hostId')
