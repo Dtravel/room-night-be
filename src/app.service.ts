@@ -1,14 +1,18 @@
 import { Injectable } from '@nestjs/common'
-import { UpdateReservationDto } from './dto/UpdateReservation.dto'
-import { PrismaService } from './connections/prisma.service'
-import { BscProvider } from './web3/bsc.provider'
-import { FACTORY_ABI, ROOM_NIGHT_ABI } from './web3/abi/ABIs'
-import { Utils } from './common/utils'
+import { ethers } from 'ethers'
 import { FACTORY_ADDRESS, SAMPLE_GUEST_ADDRESS, SAMPLE_HOST_ADDRESS } from './common/const'
+import { Utils } from './common/utils'
+import { PrismaService } from './connections/prisma.service'
+import { UpdateReservationDto } from './dto/UpdateReservation.dto'
+import { FACTORY_ABI, ROOM_NIGHT_ABI } from './web3/abi/ABIs'
+import { BscProvider } from './web3/bsc.provider'
 
 @Injectable()
 export class AppService {
-    constructor(private readonly prismaService: PrismaService, private readonly bscProvider: BscProvider) {}
+    factoryContract: ethers.Contract
+    constructor(private readonly prismaService: PrismaService, private readonly bscProvider: BscProvider) {
+        this.factoryContract = this.bscProvider.getContract(FACTORY_ADDRESS, FACTORY_ABI)
+    }
     getHello(): string {
         return 'Hello World!'
     }
@@ -26,6 +30,35 @@ export class AppService {
                 transaction_hash: updateDto.transactionHash,
             },
         })
+    }
+
+    async deployRoomNightToken(hostAddress: string, listingId: string) {
+        let gasPrice = await this.bscProvider.getGasPrice()
+        const estimateGas = await this.factoryContract.estimateGas.createRoomNightToken(
+            listingId,
+            hostAddress,
+            `RNT#${listingId}`,
+            `RNT#${listingId}`,
+            `https://guest.dataismist.com/${hostAddress}/property/${listingId}`,
+            100,
+        )
+
+        const unsignedTx = await this.factoryContract.populateTransaction.createRoomNightToken(
+            listingId,
+            hostAddress,
+            `RNT#${listingId}`,
+            `RNT#${listingId}`,
+            `https://guest.dataismist.com/${hostAddress}/property/${listingId}`,
+            100,
+            {
+                gasLimit: estimateGas.add(Utils.calculateAdditionalGasLimit(Number(estimateGas.toString()))),
+                gasPrice: gasPrice.add(gasPrice.div(10)),
+            },
+        )
+
+        const tx = await this.bscProvider.getNonceManager().sendTransaction(unsignedTx)
+        const receipt = await tx.wait()
+        return receipt
     }
 
     async updateListingMapping(listingId: string, nftAddress: string, hostAddress: string): Promise<any> {

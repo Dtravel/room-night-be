@@ -21,6 +21,10 @@ export class AppController {
     getListingByWalletAddress(@Param('hostId') hostId: string): string {
         return 'listing'
     }
+    @Post('/listing/:hostAddress/:listingId/deploy')
+    deployRoomNightToken(@Param('hostAddress') hostAddress: string, @Param('listingId') listingId: string) {
+        return this.appService.deployRoomNightToken(hostAddress, listingId).then(BaseResponse.ok)
+    }
 
     // API update transactionHash to reservation
     @Post('/reservation/:reservationId')

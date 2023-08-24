@@ -34,7 +34,11 @@ export class Listener implements OnModuleInit, OnModuleDestroy {
                 console.log('🚀 ~ file: listener.ts:28 ~ Listener ~ onModuleInit ~ hostAddress:', hostAddress)
                 console.log('🚀 ~ file: listener.ts:28 ~ Listener ~ onModuleInit ~ roomNightToken:', roomNightToken)
                 console.log('🚀 ~ file: listener.ts:28 ~ Listener ~ onModuleInit ~ propertyId:', propertyId)
-                await this.appService.updateListingMapping(propertyId, roomNightToken, hostAddress)
+                await this.appService.updateListingMapping(
+                    propertyId.toString(),
+                    roomNightToken.toString().toLowerCase(),
+                    hostAddress.toString().toLowerCase(),
+                )
             },
         )
     }

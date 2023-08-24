@@ -24,7 +24,7 @@ export class BscProvider {
         return this.nonceManager
     }
 
-    getContract(contractAddress: string, contractABI: any) {
+    getContract(contractAddress: string, contractABI: any): ethers.Contract {
         return new ethers.Contract(contractAddress, contractABI, this.nonceManager)
     }
 
