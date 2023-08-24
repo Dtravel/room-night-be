@@ -15,12 +15,16 @@ export class Listener implements OnModuleInit, OnModuleDestroy {
             'Transfer',
             async (from, to, value, event) => {
                 await Utils.sleep(5000)
-                console.log(`from: ${from}, to: ${to}, value: ${value}, event: ${event}`)
-                if (to.toLowerCase() !== process.env.OPERATOR_ADDRESS.toLowerCase()) {
-                    console.log(`to address is not operator address`, process.env.OPERATOR_ADDRESS)
-                    return
+                try {
+                    console.log(`from: ${from}, to: ${to}, value: ${value}, event: ${event}`)
+                    if (to.toLowerCase() !== process.env.OPERATOR_ADDRESS.toLowerCase()) {
+                        console.log(`to address is not operator address`, process.env.OPERATOR_ADDRESS)
+                        return
+                    }
+                    await this.appService.confirmReservation(event.transactionHash, value.toString())
+                } catch (error) {
+                    console.error(`Error ưhile cònirm booking`, error)
                 }
-                await this.appService.confirmReservation(event.transactionHash, value.toString())
             },
         )
 
@@ -30,15 +34,19 @@ export class Listener implements OnModuleInit, OnModuleDestroy {
             'NewProperty',
             async (from, to, value, event) => {
                 console.log(event)
-                let [propertyId, roomNightToken, hostAddress] = event.args
-                console.log('🚀 ~ file: listener.ts:28 ~ Listener ~ onModuleInit ~ hostAddress:', hostAddress)
-                console.log('🚀 ~ file: listener.ts:28 ~ Listener ~ onModuleInit ~ roomNightToken:', roomNightToken)
-                console.log('🚀 ~ file: listener.ts:28 ~ Listener ~ onModuleInit ~ propertyId:', propertyId)
-                await this.appService.updateListingMapping(
-                    propertyId.toString(),
-                    roomNightToken.toString().toLowerCase(),
-                    hostAddress.toString().toLowerCase(),
-                )
+                try {
+                    let [propertyId, roomNightToken, hostAddress] = event.args
+                    console.log('🚀 ~ file: listener.ts:28 ~ Listener ~ onModuleInit ~ hostAddress:', hostAddress)
+                    console.log('🚀 ~ file: listener.ts:28 ~ Listener ~ onModuleInit ~ roomNightToken:', roomNightToken)
+                    console.log('🚀 ~ file: listener.ts:28 ~ Listener ~ onModuleInit ~ propertyId:', propertyId)
+                    await this.appService.updateListingMapping(
+                        propertyId.toString(),
+                        roomNightToken.toString().toLowerCase(),
+                        hostAddress.toString().toLowerCase(),
+                    )
+                } catch (error) {
+                    console.error(`Error while update listing mapping`, error)
+                }
             },
         )
     }
