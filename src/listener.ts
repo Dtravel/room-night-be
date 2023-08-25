@@ -21,7 +21,7 @@ export class Listener implements OnModuleInit, OnModuleDestroy {
                         console.log(`to address is not operator address`, process.env.OPERATOR_ADDRESS)
                         return
                     }
-                    await this.appService.confirmReservation(eventData.transactionHash, eventData.values['value'].toString())
+                    await this.appService.confirmReservation(eventData.transactionHash, eventData.values['value'].toString(), eventData.values['to'].toLowerCase())
                 } catch (error) {
                     console.error(`Error while confirm booking`, error)
                 }

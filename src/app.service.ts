@@ -95,7 +95,8 @@ export class AppService {
         })
     }
 
-    async confirmReservation(transactionHash: string, value: string) {
+    async confirmReservation(transactionHash: string, value: string, fromAddress: string) {
+        await Utils.sleep(2000)
         // verify transactionHash
         let reservationMapping = await this.prismaService.reservation_mapping.findUnique({
             where: {
@@ -143,6 +144,11 @@ export class AppService {
                 listing_id: `${reservation.listing_id}`,
             },
         })
+        console.log("🚀 ~ file: app.service.ts:146 ~ AppService ~ confirmReservation ~ listingMapping:", listingMapping)
+        
+        if (!listingMapping) {
+            throw new BadRequestException(`Listing mapping not found with listing_id: ${reservation.listing_id}`)
+        }
         // transfer tokens from host to guest
         let { checkinDate, checkoutDate, host_wallet, guest_wallet } = reservation
         let dateRangeTokenIDs = Utils.getDateInRange(checkinDate, checkoutDate)
@@ -155,13 +161,13 @@ export class AppService {
         let gasPrice = await this.bscProvider.getGasPrice()
         const estimateGas = await contract.estimateGas.safeBatchTransferFrom(
             host_wallet,
-            guest_wallet,
+            fromAddress,
             dateRangeTokenIDs,
         )
 
         const unsignedTx = await contract.populateTransaction.safeBatchTransferFrom(
             host_wallet,
-            guest_wallet,
+            fromAddress,
             dateRangeTokenIDs,
             {
                 gasLimit: estimateGas.add(Utils.calculateAdditionalGasLimit(Number(estimateGas.toString()))),
