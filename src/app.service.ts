@@ -43,7 +43,7 @@ export class AppService {
             hostAddress,
             `RNT#${listingId}`,
             `RNT#${listingId}`,
-            `https://guest.dataismist.com/${hostAddress}/property/${listingId}`,
+            `https://guest.dtravel.xyz/${hostAddress}/property/${listingId}`,
             100,
         )
 
@@ -52,7 +52,7 @@ export class AppService {
             hostAddress,
             `RNT#${listingId}`,
             `RNT#${listingId}`,
-            `https://guest.dataismist.com/${hostAddress}/property/${listingId}`,
+            `https://guest.dtravel.xyz/${hostAddress}/property/${listingId}`,
             100,
             {
                 gasLimit: estimateGas.add(Utils.calculateAdditionalGasLimit(Number(estimateGas.toString()))),
@@ -62,6 +62,18 @@ export class AppService {
 
         const tx = await this.bscProvider.getNonceManager().sendTransaction(unsignedTx)
         const receipt = await tx.wait()
+        let iface = new ethers.utils.Interface(FACTORY_ABI)
+        const newPropertEvent = receipt.logs.map((log) => iface.parseLog(log)).find((log) => log.name === 'NewProperty')
+        console.log(
+            '🚀 ~ file: app.service.ts:67 ~ AppService ~ deployRoomNightToken ~ newPropertEvent:',
+            newPropertEvent,
+        )
+        const args = this.bscProvider.parseEventArgs(newPropertEvent.args)
+        await this.updateListingMapping(
+            listingId,
+            args['rnt'].toString().toLowerCase(),
+            hostAddress.toString().toLowerCase(),
+        )
         return receipt
     }
 
@@ -89,14 +101,16 @@ export class AppService {
         })
         if (!reservationMapping || !reservation) return false
         // TODO: verify value of transaction
-        let valueEther = ethers.utils.formatEther(value);
+        let valueEther = ethers.utils.formatEther(value)
         let slippagePercent = new Decimal(valueEther)
             .minus(reservation.final_price)
             .abs()
             .div(reservation.final_price)
             .mul(100)
         if (slippagePercent.greaterThan(10)) {
-            throw new BadRequestException(`slippagePercent is greater than 10: ${valueEther} vs ${reservation.final_price}`)
+            throw new BadRequestException(
+                `slippagePercent is greater than 10: ${valueEther} vs ${reservation.final_price}`,
+            )
         }
         // Update reservation status
         await this.prismaService.reservation.update({
