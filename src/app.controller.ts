@@ -16,10 +16,10 @@ export class AppController {
     getOperatorAddress(@Param('hostId') hostId: string): BaseResponse {
         return BaseResponse.ok(process.env.OPERATOR_ADDRESS)
     }
-    // API listing all listing for host
-    @Get('/listing/:hostId')
-    getListingByWalletAddress(@Param('hostId') hostId: string): string {
-        return 'listing'
+
+    @Get('/listing/:listingId')
+    getListingMapping(@Param('listingId') listingId: string): Promise<BaseResponse> {
+        return this.appService.getListingMapping(listingId).then(BaseResponse.ok)
     }
     @Post('/listing/:hostAddress/:listingId/deploy')
     deployRoomNightToken(@Param('hostAddress') hostAddress: string, @Param('listingId') listingId: string) {

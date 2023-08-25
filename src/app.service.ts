@@ -77,6 +77,14 @@ export class AppService {
         return receipt
     }
 
+    async getListingMapping(listingId: string) {
+        return this.prismaService.listing_mapping.findFirst({
+            where: {
+                listing_id: listingId,
+            },
+        })
+    }
+
     async updateListingMapping(listingId: string, nftAddress: string, hostAddress: string): Promise<any> {
         return this.prismaService.listing_mapping.create({
             data: {
