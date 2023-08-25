@@ -1,14 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
+import { Decimal } from '@prisma/client/runtime'
+import * as dayjs from 'dayjs'
 import { ethers } from 'ethers'
-import { FACTORY_ADDRESS, SAMPLE_GUEST_ADDRESS, SAMPLE_HOST_ADDRESS } from './common/const'
+import { FACTORY_ADDRESS } from './common/const'
 import { Utils } from './common/utils'
 import { PrismaService } from './connections/prisma.service'
+import { PrismaListingService } from './connections/prismaListing.service'
 import { UpdateReservationDto } from './dto/UpdateReservation.dto'
 import { FACTORY_ABI, ROOM_NIGHT_ABI } from './web3/abi/ABIs'
 import { BscProvider } from './web3/bsc.provider'
-import { Decimal } from '@prisma/client/runtime'
-import { PrismaListingService } from './connections/prismaListing.service'
-import * as dayjs from 'dayjs'
 
 @Injectable()
 export class AppService {
@@ -114,7 +114,7 @@ export class AppService {
             },
         })
         // transfer tokens from host to guest
-        let { checkinDate, checkoutDate } = reservation
+        let { checkinDate, checkoutDate, host_wallet, guest_wallet } = reservation
         let dateRangeTokenIDs = Utils.getDateInRange(checkinDate, checkoutDate)
         console.log(
             '🚀 ~ file: app.service.ts:73 ~ AppService ~ confirmReservation ~ dateRangeTokenIDs:',
@@ -124,14 +124,14 @@ export class AppService {
         let contract = this.bscProvider.getContract(listingMapping.room_night_token, ROOM_NIGHT_ABI)
         let gasPrice = await this.bscProvider.getGasPrice()
         const estimateGas = await contract.estimateGas.safeBatchTransferFrom(
-            SAMPLE_HOST_ADDRESS,
-            SAMPLE_GUEST_ADDRESS,
+            host_wallet,
+            guest_wallet,
             dateRangeTokenIDs,
         )
 
         const unsignedTx = await contract.populateTransaction.safeBatchTransferFrom(
-            SAMPLE_HOST_ADDRESS,
-            SAMPLE_GUEST_ADDRESS,
+            host_wallet,
+            guest_wallet,
             dateRangeTokenIDs,
             {
                 gasLimit: estimateGas.add(Utils.calculateAdditionalGasLimit(Number(estimateGas.toString()))),
