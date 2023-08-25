@@ -16,6 +16,15 @@ export class Listener implements OnModuleInit, OnModuleDestroy {
             'Transfer',
             async (eventData: IEventData) => {
                 console.log(eventData)
+                try {
+                    if (eventData.values['to'].toLowerCase() !== process.env.OPERATOR_ADDRESS.toLowerCase()) {
+                        console.log(`to address is not operator address`, process.env.OPERATOR_ADDRESS)
+                        return
+                    }
+                    await this.appService.confirmReservation(eventData.transactionHash, eventData.values['value'].toString())
+                } catch (error) {
+                    console.error(`Error while confirm booking`, error)
+                }
             },
             3000,
         )
@@ -37,7 +46,7 @@ export class Listener implements OnModuleInit, OnModuleDestroy {
         //         }
         //     },
         // )
-
+        32761167 - 32761150
         // this.bscProvider.listenEventFromcontract(
         //     FACTORY_ADDRESS,
         //     JSON.stringify(FACTORY_ABI),
@@ -49,11 +58,11 @@ export class Listener implements OnModuleInit, OnModuleDestroy {
         //             console.log('🚀 ~ file: listener.ts:28 ~ Listener ~ onModuleInit ~ hostAddress:', hostAddress)
         //             console.log('🚀 ~ file: listener.ts:28 ~ Listener ~ onModuleInit ~ roomNightToken:', roomNightToken)
         //             console.log('🚀 ~ file: listener.ts:28 ~ Listener ~ onModuleInit ~ propertyId:', propertyId)
-                    // await this.appService.updateListingMapping(
-                    //     propertyId.toString(),
-                    //     roomNightToken.toString().toLowerCase(),
-                    //     hostAddress.toString().toLowerCase(),
-                    // )
+        // await this.appService.updateListingMapping(
+        //     propertyId.toString(),
+        //     roomNightToken.toString().toLowerCase(),
+        //     hostAddress.toString().toLowerCase(),
+        // )
         //         } catch (error) {
         //             console.error(`Error while update listing mapping`, error)
         //         }

@@ -68,7 +68,7 @@ export class AppService {
             '🚀 ~ file: app.service.ts:67 ~ AppService ~ deployRoomNightToken ~ newPropertEvent:',
             newPropertEvent,
         )
-        const args = this.bscProvider.parseEventArgs(newPropertEvent.args)
+        const args = Utils.parseEventArgs(newPropertEvent.args)
         await this.updateListingMapping(
             listingId,
             args['rnt'].toString().toLowerCase(),
@@ -94,12 +94,20 @@ export class AppService {
                 transaction_hash: transactionHash,
             },
         })
+        if (!reservationMapping) {
+            console.log(`Reservation not found with transactionHash: ${transactionHash}`)
+            return false
+        }
         let reservation = await this.prismaService.reservation.findUnique({
             where: {
                 reservation_id: reservationMapping.reservation_id,
             },
         })
-        if (!reservationMapping || !reservation) return false
+        if (!reservation) {
+            console.log(`Reservation not found with reservation_id: ${reservationMapping.reservation_id}`)
+            return false
+        }
+
         // TODO: verify value of transaction
         let valueEther = ethers.utils.formatEther(value)
         let slippagePercent = new Decimal(valueEther)

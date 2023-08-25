@@ -2,6 +2,7 @@ import { NonceManager } from '@ethersproject/experimental'
 import { Injectable } from '@nestjs/common'
 import { ethers } from 'ethers'
 import { IEventData } from './types'
+import { Utils } from '../common/utils'
 
 @Injectable()
 export class BscProvider {
@@ -34,7 +35,7 @@ export class BscProvider {
 
     async queryFilter(contractAddress: string, contractABI: string, eventName: string): Promise<IEventData[]> {
         if (!this.latestBlock) {
-            this.latestBlock = await this.etherProvider.getBlockNumber()
+            this.latestBlock = (await this.etherProvider.getBlock('latest')).number
         }
         console.log('🚀 ~ file: bsc.provider.ts:54 ~ BscProvider ~ queryFilter ~ this.latestBlock:', this.latestBlock)
         const PAGE_SIZE = 20
@@ -45,13 +46,19 @@ export class BscProvider {
         )
         let eventDatas = await Promise.all(events.map(this.convertEventData))
         if (eventDatas.length > 0) {
-            this.latestBlock = eventDatas[eventDatas.length - 1].blockNumber
+            this.latestBlock = eventDatas[eventDatas.length - 1].blockNumber + 1
         } else {
-            const latestBlock = await this.etherProvider.getBlockNumber()
-            if (latestBlock < this.latestBlock + PAGE_SIZE) {
-                this.latestBlock = latestBlock
+            const latestBlock = (await this.etherProvider.getBlock('latest')).number
+            if (latestBlock <= this.latestBlock + PAGE_SIZE) {
+                if (latestBlock < this.latestBlock) {
+                    // do nothing
+                    console.log(`latestBlock < this.latestBlock`, latestBlock, this.latestBlock)
+                } else {
+                    this.latestBlock = latestBlock
+                }
+            } else {
+                this.latestBlock += PAGE_SIZE
             }
-            this.latestBlock += PAGE_SIZE
         }
         return eventDatas
     }
@@ -72,7 +79,7 @@ export class BscProvider {
         }, interval)
     }
 
-    private async convertEventData(event): Promise<IEventData> {
+    async convertEventData(event): Promise<IEventData> {
         try {
             const [block, receipt] = await Promise.all([event.getBlock(), event.getTransactionReceipt()])
             const eventData: IEventData = {
@@ -88,23 +95,10 @@ export class BscProvider {
                 logIndex: event.logIndex,
                 values: {},
             }
-            eventData.values = this.parseEventArgs(event.args)
+            eventData.values = Utils.parseEventArgs(event.args)
             return eventData
         } catch (e) {
             throw e
         }
-    }
-
-    parseEventArgs(eventArgs) {
-        let keys = Object.keys(eventArgs)
-        let values = {}
-        for (let i = keys.length / 2; i < keys.length; i++) {
-            if (Array.isArray(eventArgs[keys[i]])) {
-                values[keys[i]] = Object.values(eventArgs[keys[i]]).map((x) => x.toString())
-            } else {
-                values[keys[i]] = eventArgs[keys[i]].toString()
-            }
-        }
-        return values
     }
 }
