@@ -84,6 +84,13 @@ export class AppService {
             },
         })
     }
+    async getReservationsByListingId(listingId: string) {
+        return this.prismaService.reservation_mapping.findMany({
+            where: {
+                listing_id: listingId,
+            },
+        })
+    }
 
     async updateListingMapping(listingId: string, nftAddress: string, hostAddress: string): Promise<any> {
         return this.prismaService.listing_mapping.create({

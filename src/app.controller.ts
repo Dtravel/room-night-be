@@ -34,4 +34,10 @@ export class AppController {
     ): Promise<BaseResponse> {
         return this.appService.updateReservation(reservationId, updateDto).then(BaseResponse.ok)
     }
+
+    // API update transactionHash to reservation
+    @Get('/listing/:listingId/reservations')
+    getReservationsByListingId(@Param('listingId') listingId: string): Promise<BaseResponse> {
+        return this.appService.getReservationsByListingId(listingId).then(BaseResponse.ok)
+    }
 }
