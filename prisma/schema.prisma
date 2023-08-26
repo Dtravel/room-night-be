@@ -9,9 +9,13 @@ datasource db {
 }
 
 model reservation_mapping {
-  id               Int     @id(map: "id_key") @default(autoincrement())
-  reservation_id   String  @unique(map: "reservation_mapping_reservation_id_index") @db.VarChar(255)
-  transaction_hash String? @unique(map: "reservation_mapping_transaction_hash_index") @db.VarChar(512)
+  id                       Int       @id(map: "id_key") @default(autoincrement())
+  reservation_id           String    @unique(map: "reservation_mapping_reservation_id_index") @db.VarChar(255)
+  transaction_hash         String?   @unique(map: "reservation_mapping_transaction_hash_index") @db.VarChar(512)
+  booking_transaction_hash String?   @db.VarChar(512)
+  booking_at               DateTime? @db.Timestamp(6)
+  booking_amount           Decimal?  @db.Decimal(19, 8)
+  created_at               DateTime? @default(now()) @db.Timestamp(6)
 }
 
 model listing_mapping {

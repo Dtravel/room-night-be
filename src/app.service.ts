@@ -129,23 +129,13 @@ export class AppService {
                 `slippagePercent is greater than 10: ${valueEther} vs ${reservation.final_price}`,
             )
         }
-        // Update reservation status
-        await this.prismaService.reservation.update({
-            where: {
-                reservation_id: reservationMapping.reservation_id,
-            },
-            data: {
-                status: 'new',
-            },
-        })
-
         let listingMapping = await this.prismaService.listing_mapping.findFirst({
             where: {
                 listing_id: `${reservation.listing_id}`,
             },
         })
-        console.log("🚀 ~ file: app.service.ts:146 ~ AppService ~ confirmReservation ~ listingMapping:", listingMapping)
-        
+        console.log('🚀 ~ file: app.service.ts:146 ~ AppService ~ confirmReservation ~ listingMapping:', listingMapping)
+
         if (!listingMapping) {
             throw new BadRequestException(`Listing mapping not found with listing_id: ${reservation.listing_id}`)
         }
@@ -178,20 +168,41 @@ export class AppService {
         const tx = await this.bscProvider.getNonceManager().sendTransaction(unsignedTx)
         const receipt = await tx.wait()
         console.log('🚀 ~ file: app.service.ts:85 ~ AppService ~ confirmReservation ~ receipt:', receipt)
-        // TODO: update calendar
-        await this.prismaListingService.calendar.updateMany({
-            where: {
-                date: {
-                    gte: dayjs(checkinDate).format('YYYY-MM-DD'),
-                    lt: dayjs(checkoutDate).format('YYYY-MM-DD'),
+        // Store to reservation
+        // Update reservation status
+        Promise.all([
+            this.prismaService.reservation.update({
+                where: {
+                    reservation_id: reservationMapping.reservation_id,
                 },
-                property_id: reservation.listing_id,
-            },
-            data: {
-                is_available: false,
-                status: 'reserved',
-            },
-        })
+                data: {
+                    status: 'new',
+                },
+            }),
+            this.prismaService.reservation_mapping.update({
+                where: {
+                    reservation_id: reservationMapping.reservation_id,
+                },
+                data: {
+                    booking_transaction_hash: receipt.transactionHash,
+                    booking_at: new Date(),
+                    booking_amount: valueEther,
+                },
+            }),
+            this.prismaListingService.calendar.updateMany({
+                where: {
+                    date: {
+                        gte: dayjs(checkinDate).format('YYYY-MM-DD'),
+                        lt: dayjs(checkoutDate).format('YYYY-MM-DD'),
+                    },
+                    property_id: reservation.listing_id,
+                },
+                data: {
+                    is_available: false,
+                    status: 'reserved',
+                },
+            }),
+        ])
         return receipt
     }
 }

@@ -70,9 +70,13 @@ export class BscProvider {
         handler: (event: IEventData) => Promise<any>,
         interval: number,
     ) {
-        let events = await this.queryFilter(contractAddress, contractABI, eventName)
-        for (let event of events) {
-            await handler(event)
+        try {
+            let events = await this.queryFilter(contractAddress, contractABI, eventName)
+            for (let event of events) {
+                await handler(event)
+            }
+        } catch (error) {
+            console.error(`Error while queryFilterEventsInterval`, error)
         }
         setTimeout(() => {
             this.queryFilterEventsInterval(contractAddress, contractABI, eventName, handler, interval)
