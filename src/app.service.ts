@@ -187,6 +187,7 @@ export class AppService {
                     booking_transaction_hash: receipt.transactionHash,
                     booking_at: new Date(),
                     booking_amount: valueEther,
+                    listing_id: `${reservation.listing_id}`,
                 },
             }),
             this.prismaListingService.calendar.updateMany({

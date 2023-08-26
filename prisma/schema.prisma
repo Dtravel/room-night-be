@@ -16,6 +16,7 @@ model reservation_mapping {
   booking_at               DateTime? @db.Timestamp(6)
   booking_amount           Decimal?  @db.Decimal(19, 8)
   created_at               DateTime? @default(now()) @db.Timestamp(6)
+  listing_id               String?   @db.VarChar(255)
 }
 
 model listing_mapping {
